@@ -23,6 +23,7 @@ type Client struct {
     UpdatedAt              time.Time
     DeletedAt              gorm.DeletedAt      `gorm:"index"`
     Users                  []User
+    Apps                   []App               `gorm:"foreignKey:ClientID;constraint:OnDelete:CASCADE;"`
 }
 
 
