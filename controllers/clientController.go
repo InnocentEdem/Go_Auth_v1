@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/InnocentEdem/Go_Auth_v1/initializers"
@@ -229,19 +230,34 @@ func GetClientAPN(c *gin.Context) {
 }
 
 func HandleFeatureRequest(c *gin.Context) {
-    var request FeatureRequest
+    var request FeatureRequestInput
 
     if err := c.ShouldBindJSON(&request); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
         return
     }
 
+    client, exists := c.Get("client")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "Unauthorized"})
+        return
+    }
+
+    clientModel, ok := client.(models.Client)
+    if !ok {
+        c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Error retrieving client information"})
+        return
+    }
+
     featureRequest := utils.FeatureRequest{
-        FeatureName:        request.FeatureName,
-        FeatureDescription: request.FeatureDescription,
+        FeatureName:        request.Title,
+        FeatureDescription: request.Feature,
+        SenderName:         fmt.Sprintf("%s %s",clientModel.FirstName, clientModel.LastName),
+        SenderEmail:        clientModel.Email,
     }
 
     if err := utils.SendFeatureRequestEmail( featureRequest); err != nil {
+        fmt.Println(err)
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email"})
         return
     }

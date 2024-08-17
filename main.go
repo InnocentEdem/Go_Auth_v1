@@ -50,7 +50,7 @@ func main() {
 		clientRoutes.GET("/all-users", middlewares.ClientAuthMiddleware(), controllers.GetUsersByClient)
 		clientRoutes.GET("/client-apn", middlewares.ClientAuthMiddleware(), controllers.GetClientAPN)
 		clientRoutes.POST("/delete-user", middlewares.ClientAuthMiddleware(), controllers.DeleteUserByClient)
-		clientRoutes.POST("/feature-request", middlewares.ClientAuthMiddleware(), controllers.CreateFeatureRequest)
+		clientRoutes.POST("/feature-request", middlewares.ClientAuthMiddleware(), controllers.HandleFeatureRequest)
 		clientRoutes.GET("/config", middlewares.ClientAuthMiddleware(), controllers.GetClientAdvancedConfig)
 		clientRoutes.PUT("/config", middlewares.ClientAuthMiddleware(), controllers.UpdateClientAdvancedConfigHandler)
 		clientRoutes.GET("/client", middlewares.ClientAuthMiddleware(), controllers.GetClient)
@@ -67,7 +67,8 @@ func main() {
 		userRoutes.POST("/update-password", middlewares.UserAuthMiddleware(), controllers.UserUpdatePassword)
 		userRoutes.GET("/profile", middlewares.UserAuthMiddleware(), controllers.GetUserProfile)
 		userRoutes.PUT("/profile", middlewares.UserAuthMiddleware(), controllers.UpdateUserProfile)
-		userRoutes.POST("/refresh-token", controllers.RefreshToken)
+		userRoutes.POST("/refresh-token", middlewares.UserAuthMiddleware(), controllers.RefreshToken)
+		userRoutes.POST("/validate-email-code", middlewares.UserAuthMiddleware(), controllers.ValidateConfirmationCode)
 	}
 
 	r.Run()
