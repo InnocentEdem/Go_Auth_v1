@@ -30,7 +30,7 @@ func ClientAuthMiddleware() gin.HandlerFunc {
         }
 
 		var client models.Client
-		if err := initializers.DB.Preload("ClientAdvancedConfig").Where("email = ?", claims.Email).First(&client).Error; err != nil {
+		if err := initializers.DB.Where("email = ?", claims.Email).First(&client).Error; err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid client"})
 			c.Abort()
 			return
