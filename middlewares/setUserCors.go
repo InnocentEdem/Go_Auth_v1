@@ -16,14 +16,14 @@ func DynamicCORSMiddleware() gin.HandlerFunc {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing client id"})
 			return
 		}
-	
+
 		clientModel, ok := client.(models.Client)
 		if !ok {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving client information"})
 			return
 		}
 
-		var config models.ClientAdvancedConfig
+		var config models.AppAdvancedConfig
 		if err := initializers.DB.Where("client_id = ?", clientModel.ID).First(&config).Error; err != nil {
 			c.Next()
 			return
