@@ -17,9 +17,9 @@ func SetDefaultConfigScript() {
 	}
 
 	for _, client := range clients {
-		var config models.ClientAdvancedConfig
+		var config models.AppAdvancedConfig
 		if err := initializers.DB.Where("client_id = ?", client.ID).First(&config).Error; err == gorm.ErrRecordNotFound {
-			defaultConfig := utils.SetDefaultClientAdvancedConfig(client.ID)
+			defaultConfig := utils.SetDefaultClientAppAdvancedConfig(client.ID)
 			if err := initializers.DB.Create(&defaultConfig).Error; err != nil {
 				log.Printf("failed to create default config for client %s: %v", client.ID, err)
 			} else {
