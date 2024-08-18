@@ -8,13 +8,14 @@ import (
 )
 
 type UserConfirmation struct {
-	ID                     uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	UserID                 uuid.UUID      `gorm:"type:uuid;unique"`
-	ClientID               uuid.UUID      `gorm:"type:uuid"`
-	EmailConfirmed         bool           `gorm:"default:false"`
-	PhoneConfirmed         bool           `gorm:"default:false"`
-	PaymentMethodConfirmed bool           `gorm:"default:false"`
-	CreatedAt              time.Time      `gorm:"autoCreateTime"`
-	UpdatedAt              time.Time      `gorm:"autoUpdateTime"`
-	DeletedAt              gorm.DeletedAt `gorm:"index"`
+	ID                     uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	UserID                 uuid.UUID      `gorm:"type:uuid;unique" json:"user_id"`
+	ClientID               uuid.UUID      `gorm:"type:uuid" json:"client_id"`
+	EmailConfirmed         bool           `gorm:"default:false" json:"email_confirmed"`
+	PhoneConfirmed         bool           `gorm:"default:false" json:"phone_confirmed"`
+	PaymentMethodConfirmed bool           `gorm:"default:false" json:"payment_method_confirmed"`
+	CreatedAt              time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt              time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt              gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
+

@@ -1,9 +1,6 @@
 package models
 
 import (
-	"crypto/rand"
-	"encoding/hex"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -11,36 +8,14 @@ import (
 )
 
 type Client struct {
-	gorm.Model
-	ID                       uuid.UUID                `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	FirstName                string                   `gorm:"type:varchar(100);not null"`
-	LastName                 string                   `gorm:"type:varchar(100);not null"`
-	Email                    string                   `gorm:"type:varchar(100);uniqueIndex;not null"`
-	Password                 string                   `gorm:"type:varchar(255);not null"`
-	APN                      string                   `gorm:"type:varchar(100);uniqueIndex"`
-	ClientAdvancedConfig     ClientAdvancedConfig     `gorm:"foreignKey:ClientID"`
-	ClientConfirmationMethod ClientConfirmationMethod `gorm:"foreignKey:ClientID"`
-	CreatedAt                time.Time
-	UpdatedAt                time.Time
-	DeletedAt                gorm.DeletedAt `gorm:"index"`
-	Apps                     []App          `gorm:"foreignKey:ClientID;constraint:OnDelete:CASCADE;"`
-	Users                    []User
+	ID          uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	FirstName   string         `gorm:"type:varchar(100);not null" json:"first_name"`
+	LastName    string         `gorm:"type:varchar(100);not null" json:"last_name"`
+	Email       string         `gorm:"type:varchar(100);uniqueIndex;not null" json:"email"`
+	Password    string         `gorm:"type:varchar(255);not null" json:"-"`
+	CreatedAt   time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt   time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt   gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+	ClientApps  []ClientApp    `gorm:"foreignKey:ClientID;constraint:OnDelete:CASCADE;" json:"client_apps"`
 }
 
-func (c *Client) BeforeCreate(tx *gorm.DB) (err error) {
-	c.ID = uuid.New()
-
-	if c.APN, err = GenerateAPN(16); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func GenerateAPN(length int) (string, error) {
-	bytes := make([]byte, length)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", fmt.Errorf("failed to generate random bytes: %w", err)
-	}
-	return hex.EncodeToString(bytes), nil
-}

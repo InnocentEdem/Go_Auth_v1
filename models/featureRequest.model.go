@@ -8,18 +8,16 @@ import (
 )
 
 type FeatureRequest struct {
-	gorm.Model
-    ID        uuid.UUID `gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-    Feature   string   `gorm:"type:varchar(100);not null"`
-    Title     string   `gorm:"type:varchar(100);not null"`
-    Email     string   `gorm:"type:varchar(100);not null"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
-
+	ID        uuid.UUID      `gorm:"type:uuid;primaryKey;default:gen_random_uuid()" json:"id"`
+	Feature   string         `gorm:"type:varchar(100);not null" json:"feature"`
+	Title     string         `gorm:"type:varchar(100);not null" json:"title"`
+	Email     string         `gorm:"type:varchar(100);not null" json:"email"`
+	CreatedAt time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time      `gorm:"autoUpdateTime" json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
 
-func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
-    u.ID = uuid.New()
-    return
+func (u *ClientAppUser) BeforeCreate(tx *gorm.DB) (err error) {
+	u.ID = uuid.New()
+	return
 }
