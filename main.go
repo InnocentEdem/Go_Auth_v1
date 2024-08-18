@@ -11,10 +11,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func init(){
+func init() {
 	initializers.LoadEnvironment()
 	initializers.ConnectDB()
-	// initializers.SyncDatabase()
+	initializers.SyncDatabase()
 }
 
 // @title           Gatekeeper Pro API
@@ -46,16 +46,18 @@ func main() {
 		clientRoutes.POST("/create-client", controllers.ClientSignup)
 		clientRoutes.POST("/client-login", controllers.ClientLogin)
 		clientRoutes.POST("/generate-apn", middlewares.ClientAuthMiddleware(), controllers.GenerateAPN)
-		clientRoutes.POST("/invalidate-apn", middlewares.ClientAuthMiddleware(), controllers.InvalidateAPN)
 		clientRoutes.GET("/all-users", middlewares.ClientAuthMiddleware(), controllers.GetUsersByClient)
-		clientRoutes.GET("/client-apn", middlewares.ClientAuthMiddleware(), controllers.GetClientAPN)
+		clientRoutes.GET("/client-apn", middlewares.ClientAuthMiddleware(), controllers.GetClientAppAPN)
 		clientRoutes.POST("/delete-user", middlewares.ClientAuthMiddleware(), controllers.DeleteUserByClient)
 		clientRoutes.POST("/feature-request", middlewares.ClientAuthMiddleware(), controllers.HandleFeatureRequest)
 		clientRoutes.GET("/config", middlewares.ClientAuthMiddleware(), controllers.GetClientAdvancedConfig)
-		clientRoutes.PUT("/config", middlewares.ClientAuthMiddleware(), controllers.UpdateClientAdvancedConfigHandler)
+		clientRoutes.PUT("/config/:id", middlewares.ClientAuthMiddleware(), controllers.UpdateClientAdvancedConfigHandler)
 		clientRoutes.GET("/client", middlewares.ClientAuthMiddleware(), controllers.GetClient)
 		clientRoutes.POST("/update-password", middlewares.ClientAuthMiddleware(), controllers.ClientUpdatePassword)
 		clientRoutes.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+		clientRoutes.POST("/create-new-app", middlewares.ClientAuthMiddleware(), controllers.CreateNewClientApp)
+		clientRoutes.POST("/app-users", middlewares.ClientAuthMiddleware(), controllers.GetUsersByAppID)
+		clientRoutes.GET("/client-apps", middlewares.ClientAuthMiddleware(), controllers.GetAllClientApps)
 	}
 
 	userRoutes := r.Group("/user")
