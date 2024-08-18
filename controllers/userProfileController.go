@@ -21,13 +21,13 @@ import (
 // @Failure 500 {object} ErrorResponse
 // @Router /user/profile [get]
 func GetUserProfile(c *gin.Context) {
-	client, exists := c.Get("client")
+	clientApp, exists := c.Get("clientApp")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Client information missing"})
 		return
 	}
 
-	clientModel, ok := client.(models.Client)
+	clientAppModel, ok := clientApp.(models.ClientApp)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving client information"})
 		return
@@ -39,7 +39,7 @@ func GetUserProfile(c *gin.Context) {
 		return
 	}
 
-	userModel, ok := user.(models.User)
+	userModel, ok := user.(models.ClientAppUser)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving user information"})
 		return
@@ -58,25 +58,24 @@ func GetUserProfile(c *gin.Context) {
 		DateOfBirth:    userModel.AdditionalProperties.DateOfBirth,
 		Gender:         userModel.AdditionalProperties.Gender,
 		LastLogin:      userModel.AdditionalProperties.LastLogin,
-		Role:          userModel.AdditionalProperties.Role,
+		Role:           userModel.AdditionalProperties.Role,
 	}
 
 	address := Address{
-		Street:userModel.AdditionalProperties.Address.Street,     
-		City:userModel.AdditionalProperties.Address.City,      
-		State :userModel.AdditionalProperties.Address.State,    
-		PostalCode:userModel.AdditionalProperties.Address.PostalCode, 
-		Country:userModel.AdditionalProperties.Address.Country,    
+		Street:     userModel.AdditionalProperties.Address.Street,
+		City:       userModel.AdditionalProperties.Address.City,
+		State:      userModel.AdditionalProperties.Address.State,
+		PostalCode: userModel.AdditionalProperties.Address.PostalCode,
+		Country:    userModel.AdditionalProperties.Address.Country,
 	}
 	additionalProperties.Address = &address
 
-		if clientModel.ClientAdvancedConfig.UseAdditionalProperties {
-			userProfile.AdditionalProperties = &additionalProperties
-		}
+	if clientAppModel.AppAdvancedConfig.UseAdditionalProperties {
+		userProfile.AdditionalProperties = &additionalProperties
+	}
 
 	c.JSON(http.StatusOK, userProfile)
 }
-
 
 // @Summary Update user profile
 // @Description Updates the user profile. Response includes additional properties only if the client has use_additional_properties set to true. The id is not required in the request as it is derived from the authenticated user's context.
@@ -97,37 +96,37 @@ func UpdateUserProfile(c *gin.Context) {
 		return
 	}
 
-	client, exists := c.Get("client")
+	clientApp, exists := c.Get("clientApp")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Client information missing"})
 		return
 	}
 
-	clientModel, ok := client.(models.Client)
+	clientAppModel, ok := clientApp.(models.ClientApp)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving client information"})
 		return
 	}
-	userProps, exists := c.Get("user")
+	userProps, exists := c.Get("clientAppUser")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "User information missing"})
 		return
 	}
 
-	userModel, ok := userProps.(models.User)
+	userModel, ok := userProps.(models.ClientAppUser)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving user information"})
 		return
 	}
 
-	var user models.User
+	var user models.ClientAppUser
 	if err := initializers.DB.First(&user, "id = ?", userModel.ID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		return
 	}
 
 	if body.FirstName != nil {
-	
+
 		user.FirstName = *body.FirstName
 	}
 	if body.LastName != nil {
@@ -137,7 +136,7 @@ func UpdateUserProfile(c *gin.Context) {
 		user.Email = *body.Email
 	}
 
-	if clientModel.ClientAdvancedConfig.UseAdditionalProperties && body.AdditionalProperties != nil {
+	if clientAppModel.AppAdvancedConfig.UseAdditionalProperties && body.AdditionalProperties != nil {
 		user.AdditionalProperties = *body.AdditionalProperties
 	}
 
@@ -159,36 +158,35 @@ func UpdateUserProfile(c *gin.Context) {
 		DateOfBirth:    user.AdditionalProperties.DateOfBirth,
 		Gender:         user.AdditionalProperties.Gender,
 		LastLogin:      user.AdditionalProperties.LastLogin,
-		Role:          user.AdditionalProperties.Role,
+		Role:           user.AdditionalProperties.Role,
 	}
 
 	address := Address{
-		Street:user.AdditionalProperties.Address.Street,     
-		City:user.AdditionalProperties.Address.City,      
-		State :user.AdditionalProperties.Address.State,    
-		PostalCode:user.AdditionalProperties.Address.PostalCode, 
-		Country:user.AdditionalProperties.Address.Country,    
+		Street:     user.AdditionalProperties.Address.Street,
+		City:       user.AdditionalProperties.Address.City,
+		State:      user.AdditionalProperties.Address.State,
+		PostalCode: user.AdditionalProperties.Address.PostalCode,
+		Country:    user.AdditionalProperties.Address.Country,
 	}
 	additionalProperties.Address = &address
 
-	if clientModel.ClientAdvancedConfig.UseAdditionalProperties {
+	if clientAppModel.AppAdvancedConfig.UseAdditionalProperties {
 		userProfile.AdditionalProperties = &additionalProperties
 	}
 
 	c.JSON(http.StatusOK, userProfile)
 }
 
-
 type UserProfileResponse struct {
-	ID                   uuid.UUID                `json:"id"`
-	FirstName            string                   `json:"first_name"`
-	LastName             string                   `json:"last_name"`
-	Email                string                   `json:"email"`
+	ID                   uuid.UUID             `json:"id"`
+	FirstName            string                `json:"first_name"`
+	LastName             string                `json:"last_name"`
+	Email                string                `json:"email"`
 	AdditionalProperties *AdditionalProperties `json:"additional_properties,omitempty"`
 }
 type UpdateUserProfileRequest struct {
-	FirstName            *string                `json:"first_name,omitempty"`
-	LastName             *string                `json:"last_name,omitempty"`
-	Email                *string                `json:"email,omitempty"`
+	FirstName            *string                      `json:"first_name,omitempty"`
+	LastName             *string                      `json:"last_name,omitempty"`
+	Email                *string                      `json:"email,omitempty"`
 	AdditionalProperties *models.AdditionalProperties `json:"additional_properties,omitempty"`
 }

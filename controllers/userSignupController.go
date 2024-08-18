@@ -30,20 +30,20 @@ func UserSignup(c *gin.Context) {
 		return
 	}
 
-	client, exists := c.Get("client")
+	clientApp, exists := c.Get("clientApp")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing client id"})
 		return
 	}
 
-	clientModel, ok := client.(models.Client)
+	clientAppModel, ok := clientApp.(models.ClientApp)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving client information"})
 		return
 	}
 
-	var existingUser models.User
-	if err := initializers.DB.Where("client_id = ? AND email = ?", clientModel.ID, body.Email).First(&existingUser).Error; err == nil {
+	var existingUser models.ClientAppUser
+	if err := initializers.DB.Where("client_id = ? AND email = ?", clientAppModel.ID, body.Email).First(&existingUser).Error; err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User with this email already exists"})
 		return
 	}
@@ -55,13 +55,12 @@ func UserSignup(c *gin.Context) {
 	}
 	now := time.Now().UTC()
 
-	user := models.User{
+	user := models.ClientAppUser{
 		FirstName: body.FirstName,
 		LastName:  body.LastName,
 		Email:     body.Email,
 		Password:  string(hash),
-		ClientID:  clientModel.ID,
-
+		ClientAppID:  clientAppModel.ID,
 	}
 
 	if body.AdditionalProperties != nil {
@@ -81,7 +80,6 @@ func UserSignup(c *gin.Context) {
 			Role:      body.AdditionalProperties.Role,
 		}
 	}
-	
 
 	result := initializers.DB.Create(&user)
 	if result.Error != nil {
@@ -93,10 +91,10 @@ func UserSignup(c *gin.Context) {
 }
 
 type UserSignupRequest struct {
-	FirstName            string               `json:"first_name" binding:"required"`
-	LastName             string               `json:"last_name" binding:"required"`
-	Email                string               `json:"email" binding:"required,email"`
-	Password             string               `json:"password" binding:"required"`
+	FirstName            string                `json:"first_name" binding:"required"`
+	LastName             string                `json:"last_name" binding:"required"`
+	Email                string                `json:"email" binding:"required,email"`
+	Password             string                `json:"password" binding:"required"`
 	AdditionalProperties *AdditionalProperties `json:"additional_properties,omitempty"`
 }
 
@@ -108,7 +106,6 @@ type AdditionalProperties struct {
 	Address        *Address   `json:"address,omitempty"`
 	Role           *string    `json:"role,omitempty"`
 	LastLogin      *time.Time `json:"last_login,omitempty"`
-
 }
 
 type Address struct {
