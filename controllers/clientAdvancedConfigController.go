@@ -5,13 +5,23 @@ import (
 
 	"github.com/InnocentEdem/Go_Auth_v1/initializers"
 	"github.com/InnocentEdem/Go_Auth_v1/models"
+	"github.com/InnocentEdem/Go_Auth_v1/services"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-
-
 func UpdateClientAdvancedConfigHandler(c *gin.Context) {
+	clientAppID := c.Param("id")
+	if clientAppID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "AppId ID is required"})
+		return
+	}
+	parsedAppConfigID, err := uuid.Parse(clientAppID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid AppAdvancedConfig ID"})
+		return
+	}
+
 	client, exists := c.Get("client")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Missing client id"})
@@ -20,59 +30,23 @@ func UpdateClientAdvancedConfigHandler(c *gin.Context) {
 
 	clientModel, ok := client.(models.Client)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error retrieving client information"})
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Error retrieving client information"})
 		return
 	}
 
-	var req UpdateClientAdvancedConfigRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	var updates models.AppAdvancedConfig
+	if err := c.BindJSON(&updates); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
 		return
 	}
 
-	var config models.ClientAdvancedConfig
-	if err := initializers.DB.Where("client_id = ?", clientModel.ID).First(&config).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Client advanced config not found"})
+	updatedAppConfig, err := services.UpdateAppAdvancedConfig(parsedAppConfigID,clientModel.ID, updates)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update AppAdvancedConfig"})
 		return
 	}
 
-	if req.CorsAllowedOrigins != nil {
-		config.CorsAllowedOrigins = *req.CorsAllowedOrigins
-	}
-
-	if req.JWTExpiryTime != nil {
-		config.JWTExpiryTime = *req.JWTExpiryTime
-	}
-	if req.RefreshTokenEnabled != nil {
-		config.RefreshTokenEnabled = *req.RefreshTokenEnabled
-	}
-	if req.RefreshTokenExpiryTime != nil {
-		config.RefreshTokenExpiryTime = *req.RefreshTokenExpiryTime
-	}
-	if req.AllowJWTCustomClaims != nil {
-		config.AllowJWTCustomClaims = *req.AllowJWTCustomClaims
-	}
-	if req.UseAdditionalProperties != nil {
-		config.UseAdditionalProperties = *req.UseAdditionalProperties
-	}
-
-	if err := initializers.DB.Save(&config).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update client advanced config"})
-		return
-	}
-
-	response := ClientAdvancedConfigResponse{
-		ID:                    config.ID,
-		ClientID:              config.ClientID,
-		CorsAllowedOrigins:    config.CorsAllowedOrigins,
-		JWTExpiryTime:         config.JWTExpiryTime,
-		RefreshTokenEnabled:   config.RefreshTokenEnabled,
-		RefreshTokenExpiryTime: config.RefreshTokenExpiryTime,
-		AllowJWTCustomClaims:  config.AllowJWTCustomClaims,
-		UseAdditionalProperties: config.UseAdditionalProperties,
-	}
-
-	c.JSON(http.StatusOK, response)
+	c.JSON(http.StatusOK, gin.H{"updated_config": updatedAppConfig})
 }
 
 func GetClientAdvancedConfig(c *gin.Context) {
@@ -84,26 +58,25 @@ func GetClientAdvancedConfig(c *gin.Context) {
 	}
 
 	clientModel, ok := client.(models.Client)
-    if !ok {
-        c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Error retrieving client information"})
-        return
-    }
+	if !ok {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "Error retrieving client information"})
+		return
+	}
 
-
-	var clientConfig models.ClientAdvancedConfig
+	var clientConfig models.AppAdvancedConfig
 	if err := initializers.DB.First(&clientConfig, "client_id = ?", clientModel.ID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Client configuration not found"})
 		return
 	}
 
 	response := ClientAdvancedConfigResponse{
-		ID:                    clientConfig.ID,
-		ClientID:              clientConfig.ClientID,
-		CorsAllowedOrigins:    clientConfig.CorsAllowedOrigins,
-		JWTExpiryTime:         clientConfig.JWTExpiryTime,
-		RefreshTokenEnabled:   clientConfig.RefreshTokenEnabled,
-		RefreshTokenExpiryTime: clientConfig.RefreshTokenExpiryTime,
-		AllowJWTCustomClaims:  clientConfig.AllowJWTCustomClaims,
+		ID:                      clientConfig.ID,
+		ClientAppID:             clientConfig.ClientAppID,
+		CorsAllowedOrigins:      clientConfig.CorsAllowedOrigins,
+		JWTExpiryTime:           clientConfig.JWTExpiryTime,
+		RefreshTokenEnabled:     clientConfig.RefreshTokenEnabled,
+		RefreshTokenExpiryTime:  clientConfig.RefreshTokenExpiryTime,
+		AllowJWTCustomClaims:    clientConfig.AllowJWTCustomClaims,
 		UseAdditionalProperties: clientConfig.UseAdditionalProperties,
 	}
 
@@ -111,14 +84,14 @@ func GetClientAdvancedConfig(c *gin.Context) {
 }
 
 type ClientAdvancedConfigResponse struct {
-    ID                    uuid.UUID `json:"id"`
-	ClientID              uuid.UUID `json:"client_id"`
-	CorsAllowedOrigins    []string `json:"cors_allowed_origins"`
-	JWTExpiryTime         int      `json:"jwt_expiry_time"`
-	RefreshTokenEnabled   bool     `json:"refresh_token_enabled"`
-	RefreshTokenExpiryTime int     `json:"refresh_token_expiry_time"`
-	AllowJWTCustomClaims  bool     `json:"allow_jwt_custom_claims"`
-	UseAdditionalProperties  bool  `json:"use_additional_properties"`
+	ID                      uuid.UUID `json:"id"`
+	ClientAppID             uuid.UUID `json:"client_app_id"`
+	CorsAllowedOrigins      []string  `json:"cors_allowed_origins"`
+	JWTExpiryTime           int       `json:"jwt_expiry_time"`
+	RefreshTokenEnabled     bool      `json:"refresh_token_enabled"`
+	RefreshTokenExpiryTime  int       `json:"refresh_token_expiry_time"`
+	AllowJWTCustomClaims    bool      `json:"allow_jwt_custom_claims"`
+	UseAdditionalProperties bool      `json:"use_additional_properties"`
 }
 type UpdateClientAdvancedConfigRequest struct {
 	CorsAllowedOrigins      *[]string `json:"cors_allowed_origins,omitempty"`
