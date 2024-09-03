@@ -1,12 +1,12 @@
 @Library("shared-libraries") _
 
-def s3FileName = "go-auth"
-def bucketName = "go-auth-bucket"
+// def s3FileName = "go-auth"
+// def bucketName = "go-auth-bucket"
 
-def appName =   "go-auth"
+def appName = "go-auth"
 
 def deployConfig = [
-    testing: [
+    main: [
         revisionTag: appName,
         revisionLocation: 'go-auth-assets',
         assetsPath: 'app/',
@@ -33,10 +33,7 @@ pipeline {
     }
     
     stages{
-        stage('Build Application Image') {
-            when {
-                branch 'main'
-            }
+        stage('Build Docker Image') {
             steps {
                 script {
                     buildDockerImage(imageTag: imageTag, buildContext: '.')
@@ -45,9 +42,6 @@ pipeline {
         }
 
         stage('Push to Registry') {
-            when {
-                branch 'main'
-            }
             steps {
                 script {
                     pushDockerImage(image: imageTag, registry: imageRegistry, awsCreds: awsCreds)
@@ -55,19 +49,23 @@ pipeline {
             }
         }
 
-        stage('Prepare To Deploy') {
+        stage('Prepare Deploy') {
             when {
                 branch 'main'
             }
             steps {
-                prepareToDeploy(s3FileName: s3FileName, appName: appName, bucketName: bucketName)
+                script {
+                    sh 'mkdir -p app/'
+                    sh 'cp docker-compose.yml app/'
+                    sh 'cp deployment-scripts/ -r app/'
+                    sh 'cp appspec.yml app/'
+                    sh 'sed -i "s|image: go-auth-backend:latest|image: $imageTag|g" app/docker-compose.yml'
+                    prepareToDeployECR(environment: currentBranch, deploymentConfig: deployConfig, awsCreds: awsCreds)
+                }
             }
         }
 
         stage('Deploy') {
-            when {
-                branch 'main'
-            }
             steps {
                 script {
                     makeDeploymentECR(environment: currentBranch, deploymentConfig: deployConfig, awsCreds: awsCreds)
@@ -76,9 +74,6 @@ pipeline {
         }
 
         stage('Clean Up Build') {
-            when{
-                branch 'main'
-            }
             steps {
                 script {
                     sh "docker rmi ${imageTag}"

@@ -1,0 +1,15 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/projects/go-auth-backend
+hooks:
+  BeforeInstall:
+    - location: deployment-scripts/before-install.sh
+      timeout: 1000
+  AfterInstall:
+    - location: deployment-scripts/after-install.sh
+      timeout: 1000
+  ApplicationStart:
+    - location: deployment-scripts/boot.sh
+      timeout: 1000
