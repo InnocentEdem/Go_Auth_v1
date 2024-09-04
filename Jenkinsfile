@@ -10,7 +10,7 @@ def deployConfig = [
         revisionTag: appName,
         revisionLocation: 'go-auth-assets',
         assetsPath: 'app/',
-        codeDeployAppName: 'go-auth-backend',
+        codeDeployAppName: 'internal-projects',
         codeDeployGroup: appName
     ]
 ]
