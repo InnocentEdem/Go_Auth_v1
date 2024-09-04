@@ -50,9 +50,6 @@ pipeline {
         }
 
         stage('Prepare Deploy') {
-            when {
-                branch 'devops'
-            }
             steps {
                 script {
                     sh 'mkdir -p app/'
@@ -60,7 +57,7 @@ pipeline {
                     sh 'cp deployment-scripts/ -r app/'
                     sh 'cp appspec.yml app/'
                     sh 'sed -i "s|image: go-auth-backend:latest|image: $imageTag|g" app/docker-compose.yml'
-                    // prepareToDeployECR(environment: currentBranch, deploymentConfig: deployConfig, awsCreds: awsCreds)
+                    prepareToDeployECR(environment: currentBranch, deploymentConfig: deployConfig, awsCreds: awsCreds)
                 }
             }
         }
