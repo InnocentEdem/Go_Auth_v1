@@ -10,7 +10,7 @@ def deployConfig = [
         revisionTag: appName,
         revisionLocation: 'go-auth-assets',
         assetsPath: 'app/',
-        codeDeployAppName: 'go-auth-backend',
+        codeDeployAppName: 'internal-projects',
         codeDeployGroup: appName
     ]
 ]
@@ -50,10 +50,10 @@ pipeline {
         }
 
         stage('Prepare Deploy') {
-            when {
-                branch 'main'
-            }
             steps {
+                when {
+                    branch 'main'
+                }
                 script {
                     sh 'mkdir -p app/'
                     sh 'cp docker-compose.yml app/'
@@ -81,13 +81,13 @@ pipeline {
                 }
             }
         }
+    }
+}
 
-        stage('CleanUp WS') {
-            steps {
-                script {
-                    cleanWs()
-                }
-            }
+post{
+    always{
+        script {
+            cleanWs()
         }
     }
 }
