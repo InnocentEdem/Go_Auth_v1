@@ -53,7 +53,7 @@ pipeline {
             when {
                 branch 'main';
             }
-            
+
             steps {
                 script {
                     sh 'mkdir -p app/'
