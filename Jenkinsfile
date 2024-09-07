@@ -50,10 +50,11 @@ pipeline {
         }
 
         stage('Prepare Deploy') {
+            when {
+                branch 'main';
+            }
+
             steps {
-                when {
-                    branch 'main'
-                }
                 script {
                     sh 'mkdir -p app/'
                     sh 'cp docker-compose.yml app/'
