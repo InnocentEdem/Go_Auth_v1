@@ -1,8 +1,5 @@
 @Library("shared-libraries") _
 
-// def s3FileName = "go-auth"
-// def bucketName = "go-auth-bucket"
-
 def appName = "go-auth"
 
 def deployConfig = [
@@ -53,7 +50,7 @@ pipeline {
             when {
                 branch 'main';
             }
-
+            
             steps {
                 script {
                     sh 'mkdir -p app/'
@@ -83,12 +80,12 @@ pipeline {
             }
         }
     }
-}
 
-post{
-    always{
-        script {
-            cleanWs()
+    post{
+        always{
+            script {
+                cleanWs()
+            }
         }
     }
 }
