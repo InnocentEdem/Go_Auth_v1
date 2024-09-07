@@ -52,7 +52,7 @@ pipeline {
         stage('Prepare Deploy') {
             steps {
                 when {
-                    branch 'main'
+                    branch 'main';
                 }
                 script {
                     sh 'mkdir -p app/'
