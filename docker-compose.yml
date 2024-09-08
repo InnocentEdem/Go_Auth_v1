@@ -6,5 +6,5 @@ services:
     container_name: go-auth-backend
     restart: on-failure
     ports:
-      - "4000:4000"
+      - "4201:4000"
     env_file: .env
