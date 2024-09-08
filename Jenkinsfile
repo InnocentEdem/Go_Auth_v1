@@ -33,7 +33,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 withCredentials([file(credentialsId: 'go-auth-env', variable: 'go-env')]) {
-                    sh 'cp $go-env ./.env'
+                    sh 'cp $"go-env" ./.env'
                     script {
                         buildDockerImage(imageTag: imageTag, buildContext: '.')
                     }
